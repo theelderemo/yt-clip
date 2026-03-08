@@ -1,0 +1,6 @@
+pyperclip>=1.9.0
+
+# System dependencies (not installable via pip):
+#   yt-dlp   — https://github.com/yt-dlp/yt-dlp#installation
+#   ffmpeg   — https://ffmpeg.org/download.html  (required by yt-dlp for merging/remuxing)
+#   tkinter  — usually bundled with Python; on Debian/Ubuntu: sudo apt install python3-tk
