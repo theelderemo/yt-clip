@@ -24,7 +24,7 @@ A GUI clipboard watcher that automatically downloads URLs using [yt-dlp](https:/
 
 ```bash
 git clone https://github.com/theelderemo/yt-clip.git
-cd ytclip
+cd yt-clip
 pip install pyperclip
 ```
 
@@ -103,3 +103,6 @@ The download directory (default `~/Downloads/ytdlp/`) contains:
 ## License
 
 [MIT](LICENSE)
+
+## See Also:
+[yt-dlp](https://github.com/yt-dlp/yt-dlp.git)
