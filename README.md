@@ -18,8 +18,7 @@ A GUI clipboard watcher that automatically downloads URLs using [yt-dlp](https:/
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and on your `PATH`
 - tkinter (usually included with Python; on Debian/Ubuntu: `sudo apt install python3-tk`)
 - [ffmpeg](https://github.com/FFmpeg/FFmpeg) (required by yt-dlp for merging/remuxing)
-- tkinter  — usually bundled with Python; on Debian/Ubuntu: sudo apt install python3-tk
-
+  
 ## Install
 
 ```bash
