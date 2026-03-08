@@ -23,7 +23,7 @@ A GUI clipboard watcher that automatically downloads URLs using [yt-dlp](https:/
 ## Install
 
 ```bash
-git clone https://github.com/theelderemo/ytclip.git
+git clone https://github.com/theelderemo/yt-clip.git
 cd ytclip
 pip install pyperclip
 ```
