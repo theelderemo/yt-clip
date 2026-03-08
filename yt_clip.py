@@ -258,6 +258,7 @@ class YtClipApp:
         self._filter_mode_val = self.config.get("filter_mode", "")
         self._proc_lock = threading.Lock()
         self._proc = None
+        self._cancelled = False
         self._downloading = threading.Event()
         self._downloading.set()
         Path(self.config["download_dir"]).mkdir(parents=True, exist_ok=True)
@@ -653,6 +654,9 @@ class YtClipApp:
         self._dl_btn = ttk.Button(top, text="Pause Downloads",
                                   command=self._toggle_downloads)
         self._dl_btn.pack(side="left", padx=(12, 0))
+        self._cancel_btn = ttk.Button(top, text="Cancel Current",
+                                      command=self._cancel_current)
+        self._cancel_btn.pack(side="left", padx=(6, 0))
         self._dl_status = ttk.Label(top, text="Downloads: running",
                                      foreground=self.theme["success"])
         self._dl_status.pack(side="left", padx=8)
@@ -695,6 +699,7 @@ class YtClipApp:
                                   highlightthickness=0,
                                   bd=0, font=("monospace", 9))
         self._qlist.pack(fill="x", **pad)
+        self._qlist.bind("<Delete>", self._delete_queued)
 
         self._log = scrolledtext.ScrolledText(
             m, height=8, bg=self.theme["bg_sec"], fg=self.theme["fg"],
@@ -795,6 +800,36 @@ class YtClipApp:
                                    foreground=self.theme["success"])
             self._logm("Downloads resumed", "info")
 
+    def _cancel_current(self):
+        with self._proc_lock:
+            if self._proc:
+                self._cancelled = True
+                self._proc.terminate()
+                self._logm("Cancelled current download", "info")
+            else:
+                self._logm("No download in progress", "info")
+
+    def _delete_queued(self, _event=None):
+        sel = self._qlist.curselection()
+        if not sel:
+            return
+        idx = sel[0]
+        with self._queue_lock:
+            if idx >= len(self._queued_urls):
+                return
+            url = self._queued_urls[idx]
+            if url == self._current_url:
+                self._logm("Can't remove the active download (use Cancel Current)", "info")
+                return
+            self._queued_urls.remove(url)
+            new_q = queue.Queue()
+            for u in self._queued_urls:
+                if u != self._current_url:
+                    new_q.put(u)
+            self._dl_queue = new_q
+        self._logm(f"- removed: {url}", "info")
+        self._refresh_q()
+
     def _on_filter_mode_change(self):
         with self._filter_mode_lock:
             self._filter_mode_val = self._filter_mode.get()
@@ -825,7 +860,9 @@ class YtClipApp:
                 return
         with self._queue_lock:
             if url in self._queued_urls:
-                self._logm(f"Already queued: {url}", "info"); return
+                if not from_clipboard:
+                    self._logm(f"Already queued: {url}", "info")
+                return
             self._queued_urls.append(url)
         self._dl_queue.put(url)
         self._logm(f"+ queued: {url}", "info")
@@ -849,7 +886,11 @@ class YtClipApp:
             proc.wait()
             with self._proc_lock:
                 self._proc = None
-            if proc.returncode == 0:
+                cancelled = self._cancelled
+                self._cancelled = False
+            if cancelled:
+                self._logm(f"Cancelled: {url}", "info")
+            elif proc.returncode == 0:
                 self._logm(f"Done: {url}", "ok")
             else:
                 self._logm(f"Failed (exit {proc.returncode}): {url}", "err")
